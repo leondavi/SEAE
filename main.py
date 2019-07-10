@@ -15,4 +15,5 @@ A = np.array(nx.adjacency_matrix(G).toarray())
 
 At = torch.from_numpy(A)
 
-spectral_clusttering(At,5)
+NodesClasses = spectral_clusttering(At,5)
+generate_k_clusttered_graph(NodesClasses)

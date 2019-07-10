@@ -1,6 +1,9 @@
 import torch
 from matplotlib import pyplot as plt
 import time
+import networkx as nx
+import random
+import numpy as np
 
 def KMeans(x, K=10, Niter=10, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
@@ -53,11 +56,40 @@ def spectral_clusttering(S,K=10,dims=2):
     dims = min(eigenvectors.shape[-1]-1,dims) # 0 doesn't count
     x = eigenvectors[:,1:(dims+1)]
     classes, centroids = KMeans(x,K) #taking eigenvectors (without 0 column)
-    if dims == 2:
-        plt.figure()
-        plt.title("2D projection")
-        plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=classes.cpu(), cmap="tab10")
-        plt.scatter(centroids[:, 0].cpu(), centroids[:, 1].cpu(), c='black', s=50, alpha=.8)
-        plt.show()
+    # if dims == 2:
+    #     plt.figure()
+    #     plt.title("2D projection")
+    #     plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=classes.cpu(), cmap="tab10")
+    #     plt.scatter(centroids[:, 0].cpu(), centroids[:, 1].cpu(), c='black', s=50, alpha=.8)
+    #     plt.show()
 
-    pass
+    return classes #returns vector of nodes, each index is node's class number
+
+
+def generate_k_clusttered_graph(classes):
+    G = nx.Graph()
+    num_of_nodes = classes.shape[0]
+    G.add_nodes_from(list(range(num_of_nodes)))
+    unique_classes = torch.unique(classes)
+    gateways_nodes = np.ndarray(0)
+    for c in unique_classes:
+        nodes_of_current_class = (classes == c).nonzero()
+        subG = nx.subgraph(G,nodes_of_current_class.numpy().flatten())
+        newG = nx.fast_gnp_random_graph(nx.number_of_nodes(subG),0.5)
+        for edge in newG.edges:
+            G.add_edge(list(subG.nodes)[edge[0]], list(subG.nodes)[edge[1]])
+
+        gateways_nodes = np.append(gateways_nodes, np.random.choice(nodes_of_current_class.numpy().flatten(), len(unique_classes)))
+
+    #TODO connect clusters
+
+
+    plt.figure()
+    plt.title("clusterred graph")
+    nx.draw(G)
+    plt.show()
+
+
+
+
+
