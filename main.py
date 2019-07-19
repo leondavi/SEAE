@@ -10,7 +10,7 @@ cuda_available = torch.cuda.is_available()
 print("Is cuda available: "+str(cuda_available))
 
 
-G = nx.random_regular_graph(6,200)
+G = nx.random_regular_graph(6,100)
 #G = nx.complete_graph(50)
 print_graph_data(G,"Random Regular 6")
 #G = nx.random_lobster(100,0.5,0.5)

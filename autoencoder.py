@@ -57,7 +57,7 @@ class SpectralAutoEncoder(nn.Module):
 
 
     def forward(self,X):
-        h = self.encoder(X)
+        h = self.encoder(X.flatten())
         y = self.decoder(h)
         return y
 
