@@ -2,6 +2,7 @@
 import networkx as nx
 
 import numpy as np
+import torch
 import random
 
 #input ndarray
@@ -29,3 +30,7 @@ def print_graph_data(G,Graph_Name = "No Name"):
         print("The Graph is connected")
     else:
         print("The Graph isn't connected")
+
+
+def diag_mat(AdjMat):
+    return torch.sum(AdjMat,dim=0).diag()

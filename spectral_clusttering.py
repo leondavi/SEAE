@@ -43,7 +43,8 @@ S - Input Similarity Matrix - sparse pytorch matrix
 Return - Matrix of eigen vectors 
 """
 def spectral_embedding(S,dims=2):
-    D = torch.diag(S)
+    D = diag_mat(S)
+    #D = torch.diag(S)
     L = D-S
     (eigenvalues,eigenvectors) = torch.symeig(L.float(),eigenvectors=True)
 
