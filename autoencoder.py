@@ -24,7 +24,8 @@ class AutoEncoderClustering():
             sae = SpectralAutoEncoder(Xj,Hsize)
 
             pred = sae.forward(Xj)
-            pred
+            sae.train(Xj)
+
 
 
 
@@ -44,21 +45,32 @@ class SpectralAutoEncoder(nn.Module):
     def __init__(self,X,Hsize,learning_rate = 1e-4):
         super().__init__()
 
-        self.encoder = nn.Sequential(
-                        nn.Linear(X.shape[0]*X.shape[1],Hsize[0]*Hsize[1]),
-                        nn.Sigmoid()
-        )
-        self.decoder = nn.Sequential(
-                        nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1]),
-                        nn.Sigmoid()
-        )
+        self.encoder_grid =  nn.Linear(X.shape[0]*X.shape[1],Hsize[0]*Hsize[1])
+        self.encoder_act = nn.Sigmoid()
+        self.decoder_grid = nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1])
+        self.decoder_act = nn.Sigmoid()
+
         self.learning_rate = learning_rate
 
 
-
     def forward(self,X):
-        h = self.encoder(X.flatten())
-        y = self.decoder(h)
-        return y
+        enc_grid_out = self.encoder_grid(X.flatten())
+        enc_act_out = self.encoder_act(enc_grid_out)
+        h = enc_act_out
+        dec_grid_out = self.decoder_grid(enc_act_out)
+        y_pred = self.decoder_act(dec_grid_out)
+        return h,y_pred.view(X.shape)
+
+    def train(self,X):
+        h,y_pred = self.forward(X)
+        loss = self.loss(X,y_pred,h)
+
+    def loss(self,y_pred,y,h):
+        return torch.mean((y_pred-y)**2)+self.bkl(h) #TODO add blk
+
+    def bkl(self,h,ro=0.01): #TODO write blk after getting activation values
+        ro_avg = torch.mean(h)
+        return ro*torch.log(ro_avg/ro)+(1-ro)*torch.log((1-ro)/(1-ro_avg))
 
     #def train(self):
+
