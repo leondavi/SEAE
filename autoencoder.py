@@ -34,6 +34,7 @@ class AutoEncoderClustering():
             h,pred_y = sae.forward(Xj)
             end_t = time.time()
             print("Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
+            print("loss: " + str(loss) + " learning rate: " + str(lr))
             h
 
 
