@@ -5,6 +5,7 @@ import torch.nn as nn
 import networkx as nx
 from support import *
 
+import time
 """
 S - Similarity/Adjacency torch Matrix 
 R - DNN layers number (each layer of size n
@@ -20,11 +21,22 @@ class AutoEncoderClustering():
 
         Xj = self.Dinv_mm_S[:, :]
         for i in range(0,self.R):
+            start_t = time.time()
             Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
             sae = SpectralAutoEncoder(Xj,Hsize)
 
-            pred = sae.forward(Xj)
-            sae.train(Xj)
+            loss = 1000000
+            while loss > 0.05:
+                lr = 0.001
+                loss = sae.train(Xj,lr)
+               # print("loss: "+str(loss) + " learning rate: "+str(lr))
+
+            h,pred_y = sae.forward(Xj)
+            end_t = time.time()
+            print("Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
+            h
+
+
 
 
 
@@ -61,9 +73,15 @@ class SpectralAutoEncoder(nn.Module):
         y_pred = self.decoder_act(dec_grid_out)
         return h,y_pred.view(X.shape)
 
-    def train(self,X):
+    def train(self,X,lr):
         h,y_pred = self.forward(X)
         loss = self.loss(X,y_pred,h)
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+        loss.backward()
+        optimizer.step()
+
+        return loss
+
 
     def loss(self,y_pred,y,h):
         return torch.mean((y_pred-y)**2)+self.bkl(h) #TODO add blk
