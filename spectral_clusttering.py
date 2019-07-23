@@ -51,8 +51,7 @@ def spectral_embedding(S,dims=2):
     return eigenvectors
 
 def spectral_clusttering(S,K=10,dims=2):
-
-
+    start_t = time.time()
     eigenvectors = spectral_embedding(S,dims)
     dims = min(eigenvectors.shape[-1]-1,dims) # 0 doesn't count
     x = eigenvectors[:,1:(dims+1)]
@@ -63,10 +62,11 @@ def spectral_clusttering(S,K=10,dims=2):
     #     plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=classes.cpu(), cmap="tab10")
     #     plt.scatter(centroids[:, 0].cpu(), centroids[:, 1].cpu(), c='black', s=50, alpha=.8)
     #     plt.show()
-
+    end_t = time.time()
+    print("[SVD] " + str(end_t - start_t) + "sec")
     return classes #returns vector of nodes, each index is node's class number
 
-def generate_k_clusttered_graph(classes):
+def generate_k_clusttered_graph(classes,graph_name=None):
     G = nx.Graph()
     num_of_nodes = classes.shape[0]
     G.add_nodes_from(list(range(num_of_nodes)))
@@ -94,9 +94,12 @@ def generate_k_clusttered_graph(classes):
         G.add_edge(edge[0],edge[1])
 
     plt.figure()
-    plt.title("clusterred graph")
+    if graph_name == None:
+        plt.title("clusterred graph")
+    else:
+        plt.title(graph_name)
     nx.draw(G)
-    plt.show()
+
 
     return G
 

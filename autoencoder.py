@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import networkx as nx
 from support import *
+from spectral_clusttering import KMeans
 
 import time
 """
@@ -11,31 +12,36 @@ S - Similarity/Adjacency torch Matrix
 R - DNN layers number (each layer of size n
 """
 class AutoEncoderClustering():
-    def __init__(self,S,R):
+    def __init__(self,S):
         self.D = diag_mat(S).float()
         self.S = S.float()
-        self.R = R
         self.Dinv_mm_S = torch.mm(self.D.inverse(), self.S)
 
-    def run(self):
+    def run(self,K=10,dims=2):
 
         Xj = self.Dinv_mm_S[:, :]
-        for i in range(0,self.R):
+        for i in range(0,3):
             start_t = time.time()
             Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
             sae = SpectralAutoEncoder(Xj,Hsize)
 
             loss = 1000000
-            while loss > 0.05:
-                lr = 0.001
+            while loss > 0.1:
+                lr = 0.005
                 loss = sae.train(Xj,lr)
                # print("loss: "+str(loss) + " learning rate: "+str(lr))
 
             h,pred_y = sae.forward(Xj)
             end_t = time.time()
-            print("Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
-            print("loss: " + str(loss) + " learning rate: " + str(lr))
-            h
+            print("[AES] Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
+            print("[AES] loss: " + str(loss) + " learning rate: " + str(lr))
+            Xj = h
+
+        x = Xj[:, 1:(dims + 1)]
+        classes, centroids = KMeans(x, K)
+        return classes
+
+
 
 
 
@@ -63,6 +69,8 @@ class SpectralAutoEncoder(nn.Module):
         self.decoder_grid = nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1])
         self.decoder_act = nn.Sigmoid()
 
+        self.h_shape = Hsize
+
         self.learning_rate = learning_rate
 
 
@@ -72,13 +80,13 @@ class SpectralAutoEncoder(nn.Module):
         h = enc_act_out
         dec_grid_out = self.decoder_grid(enc_act_out)
         y_pred = self.decoder_act(dec_grid_out)
-        return h,y_pred.view(X.shape)
+        return h.view(self.h_shape),y_pred.view(X.shape)
 
     def train(self,X,lr):
         h,y_pred = self.forward(X)
         loss = self.loss(X,y_pred,h)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        loss.backward()
+        loss.backward(retain_graph=True)
         optimizer.step()
 
         return loss
