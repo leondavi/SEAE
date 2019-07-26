@@ -28,10 +28,10 @@ def KMeans(x, K=10, Niter=10, verbose=True):
 
     end = time.time()
 
-    if verbose:
-        print("K-means input with {:,} points in dimension {:,}, K = {:,}:".format(N, D, K))
-        print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format(
-                Niter, end - start, Niter, (end-start) / Niter))
+    # if verbose:
+    #     print("K-means input with {:,} points in dimension {:,}, K = {:,}:".format(N, D, K))
+    #     print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format(
+    #             Niter, end - start, Niter, (end-start) / Niter))
 
     return cl, c
 

@@ -21,7 +21,7 @@ PAIRS_ACTIVITY_ATTR = "pairs activity"
 class trace:
 
     def __init__(self,experimentName,traceFileName):
-        self.trace = ps.read_csv(traceFileName,nrows=5000)#TODO remove
+        self.trace = ps.read_csv(traceFileName,nrows=10000)#TODO remove
         self.experimentName = experimentName
         self.expStrBlock = "["+self.experimentName+"] "
         self.convert_hash = dict()
@@ -79,6 +79,9 @@ class trace:
 
     def get_list_of_pairs_nodes(self):
         return self.listOfPairs
+
+    def get_trace_name(self):
+        return self.experimentName
 
     def convert_string_column_to_indexes(self,SourcesColumnStr,DestinationsColumnStr):
         UnifiedList = ps.concat([SourcesColumnStr, DestinationsColumnStr])

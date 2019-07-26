@@ -6,7 +6,10 @@ from support import *
 from autoencoder import *
 from traces_extraction import *
 from experiment import Simulation
+import pandas as pd
 
+info_st_ = "[INFO] "
+prog_st_ = "[PROGRESS]"
 # Functions
 
 def generate_graph_by_activity_pairs(nodes_pairs):
@@ -35,15 +38,10 @@ Experiments["traceA"] = "data/Trace_In_cluster_A_segment_9_{Time,Src,Dst}_.csv"
 #Experiments["traceB"] = "data/Trace_In_cluster_B_segment_9_{Time,Src,Dst}_.csv"
 
 
-
-
-
-
-cuda_available = torch.cuda.is_available()
-
-print("Is cuda available: "+str(cuda_available))
+results = pd.DataFrame(["trace_name","graph_name","clusters","simulation_avg_hops","num_of_edges","num_of_nodes","graph_is_connected"])
 
 #Experiment start
+print(info_st_+"Experiment starting: \n--------------------")
 
 CurrentTraceInst = trace("traceA", "data/Trace_In_cluster_A_segment_9_{Time,Src,Dst}_.csv")
 CurrentTraceInst.extract_statistics()
@@ -53,31 +51,31 @@ nodes_hash = CurrentTraceInst.get_convert_hash()
 trace_table = CurrentTraceInst.get_trace_table()
 nodes_pairs = CurrentTraceInst.get_list_of_pairs_nodes()
 nodes_activity = CurrentTraceInst.get_nodes_activity()
+trace_name = CurrentTraceInst.get_trace_name()
 
 #generate graph types
-
+print("\n"+info_st_+"Generates graphs: \n ---------------------")
 Graphs = dict()
-Graphs["Random Regular 6"] = nx.random_regular_graph(6,Sm_actMat_torch.shape[1])
-Graphs["Activity pairs based"] = generate_graph_by_activity_pairs(nodes_pairs)
+Graphs["Random Regular 6"] = (nx.random_regular_graph(6,Sm_actMat_torch.shape[1]),0)
+print(prog_st_+"0%")
+Graphs["Activity pairs based"] = (generate_graph_by_activity_pairs(nodes_pairs),0)
 for clusters in range (2,6):
-    Graphs["Spectral embedding - "+str(clusters)+"clusters"]
-    Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"]
+    Graphs["Spectral embedding - "+str(clusters)+"clusters"] = (generate_spectral_clusttering_graph(Sm_actMat_torch,clusters),clusters)
+    Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"] = (generate_aes_clusttering_graph(Sm_actMat_torch,clusters),clusters)
+    print(prog_st_+str(100*(clusters/6.))+"%")
 
+#Graphs simulations and performances checks
 
-G_rand_reg_6 = nx.random_regular_graph(6,Sm_actMat_torch.shape[1])
+print(info_st_+"Performs simulations on graphs and perfomance checks \n --------------------------------------------------------")
+print(info_st_+"Results will be saved to file at the end")
+for graph_name in Graphs.items():
+    (current_G,clusters) = Graphs[graph_name]
+    sim = Simulation(current_G, nodes_activity, nodes_hash, trace_table)
+    simulation_avg_hops = sim.run_avg_dist()
+    num_of_nodes = str(len(nx.nodes(current_G)))
+    num_of_edges = str(len(nx.edges(current_G)))
+    graph_is_connected = nx.is_connected(current_G)
+    results.append([trace_name,graph_name,clusters,simulation_avg_hops,num_of_edges,num_of_nodes,graph_is_connected])
 
-sim = Simulation(G_rand_reg_6,nodes_activity,nodes_hash,trace_table)
-print("Avg # of hops: "+str(sim.run_avg_dist()))
-print_graph_data(G_rand_reg_6)
-
-
-
-
-#
-# print_graph_data(G_spectral_clusttered,"Spectral Clusttered Graph")
-
-
-
-
-plt.show()
+print(results)
 
