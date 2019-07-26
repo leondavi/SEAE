@@ -58,7 +58,11 @@ nodes_activity = CurrentTraceInst.get_nodes_activity()
 
 Graphs = dict()
 Graphs["Random Regular 6"] = nx.random_regular_graph(6,Sm_actMat_torch.shape[1])
-Graphs["Activity pairs based graph"] = generate_graph_by_activity_pairs(nodes_pairs)
+Graphs["Activity pairs based"] = generate_graph_by_activity_pairs(nodes_pairs)
+for clusters in range (2,6):
+    Graphs["Spectral embedding - "+str(clusters)+"clusters"]
+    Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"]
+
 
 G_rand_reg_6 = nx.random_regular_graph(6,Sm_actMat_torch.shape[1])
 
