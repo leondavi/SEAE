@@ -92,16 +92,15 @@ def generate_k_clusttered_graph(classes,graph_name=None):
 
     for edge in edges_to_add:
         G.add_edge(edge[0],edge[1])
+    return G
 
+def generate_graph_plot(G,GraphName):
     plt.figure()
-    if graph_name == None:
+    if GraphName == None:
         plt.title("clusterred graph")
     else:
-        plt.title(graph_name)
+        plt.title(GraphName)
     nx.draw(G)
-
-
-    return G
 
 
 
