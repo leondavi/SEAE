@@ -38,7 +38,7 @@ Experiments["traceA"] = "data/Trace_In_cluster_A_segment_9_{Time,Src,Dst}_.csv"
 #Experiments["traceB"] = "data/Trace_In_cluster_B_segment_9_{Time,Src,Dst}_.csv"
 
 
-results = pd.DataFrame(["trace_name","graph_name","clusters","simulation_avg_hops","num_of_edges","num_of_nodes","graph_is_connected"])
+results = pd.DataFrame(columns=["trace_name","graph_name","clusters","simulation_avg_hops","num_of_edges","num_of_nodes","graph_is_connected"])
 
 #Experiment start
 print(info_st_+"Experiment starting: \n--------------------")
@@ -68,14 +68,18 @@ for clusters in range (2,6):
 
 print(info_st_+"Performs simulations on graphs and perfomance checks \n --------------------------------------------------------")
 print(info_st_+"Results will be saved to file at the end")
-for graph_name in Graphs.items():
-    (current_G,clusters) = Graphs[graph_name]
+for graph_name in Graphs.keys():
+    current_G = Graphs[graph_name][0]
+    clusters = Graphs[graph_name][1]
     sim = Simulation(current_G, nodes_activity, nodes_hash, trace_table)
-    simulation_avg_hops = sim.run_avg_dist()
     num_of_nodes = str(len(nx.nodes(current_G)))
     num_of_edges = str(len(nx.edges(current_G)))
     graph_is_connected = nx.is_connected(current_G)
-    results.append([trace_name,graph_name,clusters,simulation_avg_hops,num_of_edges,num_of_nodes,graph_is_connected])
+    simulation_avg_hops = 0
+    if graph_is_connected:
+        simulation_avg_hops = sim.run_avg_dist()
+
+    results = results.append(pd.DataFrame([[trace_name,graph_name,clusters,simulation_avg_hops,num_of_edges,num_of_nodes,graph_is_connected]],columns=results.columns))
 
 print(results)
 

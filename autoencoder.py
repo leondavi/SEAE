@@ -24,10 +24,10 @@ class AutoEncoderClustering():
             start_t = time.time()
             Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
 
-            if torch.cuda.is_available():
-                sae = SpectralAutoEncoder(Xj,Hsize).cuda()
-            else:
-                sae = SpectralAutoEncoder(Xj, Hsize)
+            #if torch.cuda.is_available():
+            #    sae = SpectralAutoEncoder(Xj,Hsize).cuda()
+           # else:
+            sae = SpectralAutoEncoder(Xj, Hsize)
 
 
             loss = 1000000
@@ -69,7 +69,7 @@ class SpectralAutoEncoder(nn.Module):
     def __init__(self,X,Hsize,learning_rate = 1e-4):
         super().__init__()
 
-        self.cuda = torch.cuda.is_available()
+        self.cuda = False# torch.cuda.is_available()
 
         if self.cuda:
             self.encoder_grid = nn.Linear(X.shape[0] * X.shape[1], Hsize[0] * Hsize[1]).cuda()

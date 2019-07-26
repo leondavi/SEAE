@@ -34,3 +34,6 @@ def print_graph_data(G,Graph_Name = "No Name"):
 
 def diag_mat(AdjMat):
     return torch.sum(AdjMat,dim=0).diag()
+
+def insert_row(idx, df, df_insert):
+    return df.iloc[:idx, ].append(df_insert).append(df.iloc[idx:, ]).reset_index(drop = True)
