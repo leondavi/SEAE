@@ -23,11 +23,16 @@ class AutoEncoderClustering():
         for i in range(0,3):
             start_t = time.time()
             Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
-            sae = SpectralAutoEncoder(Xj,Hsize)
+
+            if torch.cuda.is_available():
+                sae = SpectralAutoEncoder(Xj,Hsize).cuda()
+            else:
+                sae = SpectralAutoEncoder(Xj, Hsize)
+
 
             loss = 1000000
             while loss > 0.1:
-                lr = 0.005
+                lr = 0.01
                 loss = sae.train(Xj,lr)
                # print("loss: "+str(loss) + " learning rate: "+str(lr))
 
@@ -64,10 +69,18 @@ class SpectralAutoEncoder(nn.Module):
     def __init__(self,X,Hsize,learning_rate = 1e-4):
         super().__init__()
 
-        self.encoder_grid =  nn.Linear(X.shape[0]*X.shape[1],Hsize[0]*Hsize[1])
-        self.encoder_act = nn.Sigmoid()
-        self.decoder_grid = nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1])
-        self.decoder_act = nn.Sigmoid()
+        self.cuda = torch.cuda.is_available()
+
+        if self.cuda:
+            self.encoder_grid = nn.Linear(X.shape[0] * X.shape[1], Hsize[0] * Hsize[1]).cuda()
+            self.encoder_act = nn.Sigmoid().cuda()
+            self.decoder_grid = nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1]).cuda()
+            self.decoder_act = nn.Sigmoid().cuda()
+        else:
+            self.encoder_grid =  nn.Linear(X.shape[0]*X.shape[1],Hsize[0]*Hsize[1])
+            self.encoder_act = nn.Sigmoid()
+            self.decoder_grid = nn.Linear(Hsize[0] * Hsize[1], X.shape[0] * X.shape[1])
+            self.decoder_act = nn.Sigmoid()
 
         self.h_shape = Hsize
 
@@ -75,19 +88,35 @@ class SpectralAutoEncoder(nn.Module):
 
 
     def forward(self,X):
-        enc_grid_out = self.encoder_grid(X.flatten())
-        enc_act_out = self.encoder_act(enc_grid_out)
-        h = enc_act_out
-        dec_grid_out = self.decoder_grid(enc_act_out)
-        y_pred = self.decoder_act(dec_grid_out)
+
+        if self.cuda:
+            print("[AES] using cuda")
+            enc_grid_out = self.encoder_grid(X.flatten()).cuda()
+            enc_act_out = self.encoder_act(enc_grid_out).cuda()
+            h = enc_act_out
+            dec_grid_out = self.decoder_grid(enc_act_out).cuda()
+            y_pred = self.decoder_act(dec_grid_out).cuda()
+        else:
+            enc_grid_out = self.encoder_grid(X.flatten())
+            enc_act_out = self.encoder_act(enc_grid_out)
+            h = enc_act_out
+            dec_grid_out = self.decoder_grid(enc_act_out)
+            y_pred = self.decoder_act(dec_grid_out)
+
         return h.view(self.h_shape),y_pred.view(X.shape)
 
     def train(self,X,lr):
         h,y_pred = self.forward(X)
-        loss = self.loss(X,y_pred,h)
-        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
-        loss.backward(retain_graph=True)
-        optimizer.step()
+        if self.cuda:
+            loss = self.loss(X, y_pred, h).cuda()
+            optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+            loss.backward(retain_graph=True)
+            optimizer.step()
+        else:
+            loss = self.loss(X, y_pred, h).cuda()
+            optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+            loss.backward(retain_graph=True)
+            optimizer.step()
 
         return loss
 
