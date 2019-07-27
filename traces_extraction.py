@@ -21,7 +21,7 @@ PAIRS_ACTIVITY_ATTR = "pairs activity"
 class trace:
 
     def __init__(self,experimentName,traceFileName):
-        self.trace = ps.read_csv(traceFileName,nrows=50)#TODO remove
+        self.trace = ps.read_csv(traceFileName,nrows=100)#TODO remove
         self.experimentName = experimentName
         self.expStrBlock = "["+self.experimentName+"] "
         self.convert_hash = dict()

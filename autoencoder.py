@@ -23,7 +23,7 @@ class AutoEncoderClustering():
         Xj = self.Dinv_mm_S[:, :].numpy()
         for i in range(0,3):
             start_t = time.time()
-            Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
+            Hsize = (Xj.shape[0],5) #int(Xj.shape[1]/2
 
             #if torch.cuda.is_available():
             #    sae = SpectralAutoEncoder(Xj,Hsize).cuda()

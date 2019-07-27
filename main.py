@@ -59,10 +59,10 @@ Graphs = dict()
 Graphs["Random Regular 6"] = (nx.random_regular_graph(6,Sm_actMat_torch.shape[1]),0)
 print(prog_st_+"0%")
 Graphs["Activity pairs based"] = (generate_graph_by_activity_pairs(nodes_pairs),0)
-for clusters in range (2,6):
+for clusters in range (2,5):
     Graphs["Spectral embedding - "+str(clusters)+"clusters"] = (generate_spectral_clusttering_graph(Sm_actMat_torch,clusters),clusters)
     Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"] = (generate_aes_clusttering_graph(Sm_actMat_torch,clusters),clusters)
-    print(prog_st_+str(100*(clusters/6.))+"%")
+    print(prog_st_+str(100*(clusters/5.))+"%")
 
 #Graphs simulations and performances checks
 
