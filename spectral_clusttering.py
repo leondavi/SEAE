@@ -80,9 +80,11 @@ def generate_k_clusttered_graph(classes,graph_name=None):
         while (not nx.is_connected(newG)):
             percentage += 0.05
             newG = nx.fast_gnp_random_graph(nx.number_of_nodes(subG),percentage)
-       #     G.add_edges_from(newG.edges)
+            G.add_edges_from(list(newG.edges))
+        list_of_edges_to_add = []
         for edge in newG.edges:
-            G.add_edge(list(subG.nodes)[edge[0]], list(subG.nodes)[edge[1]])
+            list_of_edges_to_add.append((list(subG.nodes)[edge[0]], list(subG.nodes)[edge[1]]))
+        G.add_edges_from(list_of_edges_to_add)
 
         #gateways_nodes = np.vstack([gateways_nodes, np.random.choice(nodes_of_current_class.numpy().flatten(), 2)])
         gateways_nodes = np.vstack([gateways_nodes, choice_unique(nodes_of_current_class.numpy().flatten(), 2)])

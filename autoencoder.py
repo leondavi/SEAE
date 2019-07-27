@@ -5,7 +5,8 @@ import torch.nn as nn
 import networkx as nx
 from support import *
 from spectral_clusttering import KMeans
-
+import numpy as np
+import keras
 import time
 """
 S - Similarity/Adjacency torch Matrix 
@@ -19,7 +20,7 @@ class AutoEncoderClustering():
 
     def run(self,K=10,dims=2):
 
-        Xj = self.Dinv_mm_S[:, :]
+        Xj = self.Dinv_mm_S[:, :].numpy()
         for i in range(0,3):
             start_t = time.time()
             Hsize = (Xj.shape[0],int(Xj.shape[1]/2))
@@ -27,22 +28,29 @@ class AutoEncoderClustering():
             #if torch.cuda.is_available():
             #    sae = SpectralAutoEncoder(Xj,Hsize).cuda()
            # else:
-            sae = SpectralAutoEncoder(Xj, Hsize)
+            #sae = SpectralAutoEncoder(Xj, Hsize)
+            sae = SpectralAutoEncoder_keras(Xj,Hsize)
 
-
-            loss = 1000000
-            while loss > 0.1:
-                lr = 0.01
-                loss = sae.train(Xj,lr)
-               # print("loss: "+str(loss) + " learning rate: "+str(lr))
-
-            h,pred_y = sae.forward(Xj)
+            sae.fit()
+            h = sae.predict()
+            Xj = h.reshape(Hsize)
             end_t = time.time()
-            print("[AES] Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
-            print("[AES] loss: " + str(loss) + " learning rate: " + str(lr))
-            Xj = h
+            print("[AES] Iteration " + str(i) + " took " + str(end_t - start_t) + "sec")
 
-        x = Xj[:, 1:(dims + 1)]
+
+        #     loss = 1000000
+        #     while loss > 0.1:
+        #         lr = 0.01
+        #         loss = sae.train(Xj,lr)
+        #        # print("loss: "+str(loss) + " learning rate: "+str(lr))
+        #
+        #     h,pred_y = sae.forward(Xj)
+        #     end_t = time.time()
+        #     print("[AES] Iteration "+str(i)+" took "+str(end_t-start_t)+"sec")
+        #     print("[AES] loss: " + str(loss) + " learning rate: " + str(lr))
+        #     Xj = h
+        #
+        x = torch.from_numpy(Xj[:, 1:(dims + 1)])
         classes, centroids = KMeans(x, K)
         return classes
 
@@ -50,9 +58,42 @@ class AutoEncoderClustering():
 
 
 
+class SpectralAutoEncoder_keras():
+    def __init__(self,X,Hsize,learning_rate = 1e-4):
+        self.encoding_dim =  Hsize[0] * Hsize[1]
+        self.decoding_dim = X.shape[0] * X.shape[1]
+        self.input_shape = (X.shape[0] * X.shape[1],)
+
+        self.autoencoder = keras.models.Sequential([
+            keras.layers.Dense(self.encoding_dim,input_shape=self.input_shape),#encoded
+            keras.layers.Activation('sigmoid'),#encoded_act
+            keras.layers.Dense(self.decoding_dim),#decoded_layer
+            keras.layers.Activation('sigmoid') #decoded act
+        ])
+
+        self.Xflatten_size = X.shape[0]*X.shape[1]
+        self.X = X
+
+    def fit(self,epoch = 1, batch_size=100):
+        self.autoencoder.compile(optimizer='adam',loss='mse')
+        self.autoencoder.fit(self.X.flatten().reshape(1,self.Xflatten_size),self.X.flatten().reshape(1,self.Xflatten_size),verbose=0,nb_epoch=epoch,batch_size=batch_size)
+
+    def predict(self):
+        h_model = keras.models.Sequential([
+            keras.layers.Dense(self.encoding_dim, input_shape=self.input_shape,weights=self.autoencoder.layers[0].get_weights()),  # encoded
+            keras.layers.Activation('sigmoid') ])  # encoded_act
+
+        H = h_model.predict(self.X.flatten().reshape(1,self.Xflatten_size))
+
+        return H
 
 
+    def loss(self, y_pred, y, h):
+        return torch.mean((y_pred - y) ** 2) + self.bkl(h)  # TODO add blk
 
+    def bkl(self, h, ro=0.01):  # TODO write blk after getting activation values
+        ro_avg = torch.mean(h)
+        return ro * torch.log(ro_avg / ro) + (1 - ro) * torch.log((1 - ro) / (1 - ro_avg))
 
 
 """

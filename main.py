@@ -81,5 +81,8 @@ for graph_name in Graphs.keys():
 
     results = results.append(pd.DataFrame([[trace_name,graph_name,clusters,simulation_avg_hops,num_of_edges,num_of_nodes,graph_is_connected]],columns=results.columns))
 
+results.reset_index(inplace=True,drop=True)
+results.to_csv("results.csv")
+
 print(results)
 
