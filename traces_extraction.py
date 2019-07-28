@@ -21,7 +21,7 @@ PAIRS_ACTIVITY_ATTR = "pairs activity"
 class trace:
 
     def __init__(self,experimentName,traceFileName):
-        self.trace = ps.read_csv(traceFileName,nrows=10000)#TODO remove nrows=
+        self.trace = ps.read_csv(traceFileName,nrows=50)#TODO remove nrows=
         self.experimentName = experimentName
         self.expStrBlock = "["+self.experimentName+"] "
         self.convert_hash = dict()
@@ -61,7 +61,7 @@ class trace:
         self.statistics = statistics #save the dictionary
         self.SimilarityActivityMat = self.generate_similarity_matrix_by_activity(UniqueAddressesInt,listOfPairs)
 
-        statistics[NODES_ACTIVITY_ATTR] = torch.from_numpy(np.sum(self.SimilarityActivityMat,axis=0))#torch.sum(self.SimilarityActivityMat,dim=0) #sum rows to get activity per node
+        statistics[NODES_ACTIVITY_ATTR] = np.sum(self.SimilarityActivityMat,axis=0)#torch.sum(self.SimilarityActivityMat,dim=0) #sum rows to get activity per node
 
         print(self.expStrBlock+"Analayze completed")
 

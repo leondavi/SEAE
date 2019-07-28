@@ -13,7 +13,7 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     # - cl is the vector of class labels
     # - c  is the cloud of cluster centroids
     start = time.time()
-    c = x[:K, :].clone()  # Simplistic random initialization
+    c = x[:K, :].copy()  # Simplistic random initialization
     x_i = torch.Tensor( x[:,None,:] )  # (Npoints, 1, D)
 
     for i in range(Niter):
@@ -22,9 +22,9 @@ def KMeans(x, K=10, Niter=10, verbose=True):
         D_ij = ((x_i - c_j)**2).sum(-1)  # (Npoints, Nclusters) symbolic matrix of squared distances
         cl  = D_ij.argmin(dim=1).long().view(-1)  # Points -> Nearest cluster
 
-        Ncl = torch.bincount(cl)  # Class weights
+        Ncl = np.bincount(cl)  # Class weights
         for d in range(D):  # Compute the cluster centroids with torch.bincount:
-            c[:, d] = torch.bincount(cl, weights=x[:, d]) / Ncl.float()
+            c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
 
     end = time.time()
 
