@@ -23,17 +23,19 @@ class AutoEncoderClustering():
         Xj = self.Dinv_mm_S[:, :].numpy()
         for i in range(0,3):
             start_t = time.time()
-            Hsize = (Xj.shape[0],5) #int(Xj.shape[1]/2
+            h = np.zeros(shape=(Xj.shape[0],int(Xj.shape[1]/2)))
+            for col_idx in range(0,h.shape[1]):
+                Hsize = (Xj.shape[0],1) #int(Xj.shape[1]/2
 
             #if torch.cuda.is_available():
             #    sae = SpectralAutoEncoder(Xj,Hsize).cuda()
            # else:
             #sae = SpectralAutoEncoder(Xj, Hsize)
-            sae = SpectralAutoEncoder_keras(Xj,Hsize)
+                sae = SpectralAutoEncoder_keras(Xj[:,col_idx].reshape(Xj.shape[0],1),Hsize)
 
-            sae.fit()
-            h = sae.predict()
-            Xj = h.reshape(Hsize)
+                sae.fit()
+                h[:,col_idx] = sae.predict().flatten()
+            Xj = h
             end_t = time.time()
             print("[AES] Iteration " + str(i) + " took " + str(end_t - start_t) + "sec")
 

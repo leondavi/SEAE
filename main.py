@@ -7,6 +7,10 @@ from autoencoder import *
 from traces_extraction import *
 from experiment import Simulation
 import pandas as pd
+import tensorflow as tf
+
+config = tf.ConfigProto(device_count={"CPU": 8})
+keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
 
 info_st_ = "[INFO] "
 prog_st_ = "[PROGRESS]"
