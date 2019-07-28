@@ -38,7 +38,7 @@ class AutoEncoderClustering():
             start_t = time.time()
             h = np.zeros(shape=(Xj.shape[0],int(Xj.shape[1]/2)))
 
-            results = Parallel(n_jobs=4)(delayed(par_func)(h,col_idx,Xj) for col_idx in range(0,h.shape[1]))
+            results = Parallel(n_jobs=6)(delayed(par_func)(h,col_idx,Xj) for col_idx in range(0,h.shape[1]))
 
             # for col_idx in range(0,h.shape[1]):
             #     Hsize = (Xj.shape[0],1) #int(Xj.shape[1]/2

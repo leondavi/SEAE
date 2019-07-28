@@ -1,16 +1,13 @@
-import torch
-from pytorch_bridge import *
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from spectral_clusttering import *
-import numpy as np
-from support import *
 from autoencoder import *
 from traces_extraction import *
 from experiment import Simulation
 import pandas as pd
 import tensorflow as tf
 
-config = tf.ConfigProto(device_count={"CPU": 8})
-keras.backend.tensorflow_backend.set_session(tf.Session(config=config))
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 info_st_ = "[INFO] "
 prog_st_ = "[PROGRESS]"
@@ -63,10 +60,12 @@ Graphs = dict()
 Graphs["Random Regular 6"] = (nx.random_regular_graph(6,Sm_actMat_torch.shape[1]),0)
 print(prog_st_+"0%")
 Graphs["Activity pairs based"] = (generate_graph_by_activity_pairs(nodes_pairs),0)
+graphs_similarities = []
 for clusters in range (2,5):
     Graphs["Spectral embedding - "+str(clusters)+"clusters"] = (generate_spectral_clusttering_graph(Sm_actMat_torch,clusters),clusters)
     Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"] = (generate_aes_clusttering_graph(Sm_actMat_torch,clusters),clusters)
-    print(prog_st_+str(100*(clusters/5.))+"%")
+    graphs_similarities.append(("Spectral embedding - "+str(clusters)+"clusters","AutoEncoder embedding - "+str(clusters)+"clusters"))
+    print(prog_st_+str(100*((clusters+1)/5.))+"%")
 
 #Graphs simulations and performances checks
 
@@ -87,6 +86,14 @@ for graph_name in Graphs.keys():
 
 results.reset_index(inplace=True,drop=True)
 results.to_csv("results.csv")
+
+print("Graph similarities: ")
+for graphs in graphs_similarities:
+    res = nx.algorithms.similarity.simrank_similarity_numpy(Graphs[graphs[0]][0],Graphs[graphs[1]][0])
+    print("Similarity res: "+str(res)+" for "+graphs[0]+" and "+graphs[1])
+
+
+
 
 print(results)
 
