@@ -46,7 +46,7 @@ def spectral_embedding(S,dims=2):
     D = diag_mat(S)
     #D = torch.diag(S)
     L = D-S
-    (eigenvalues,eigenvectors) = torch.symeig(L.float(),eigenvectors=True)
+    (eigenvalues,eigenvectors) = np.linalg.eigh(L)#torch.symeig(L.float(),eigenvectors=True)
 
     return eigenvectors
 
