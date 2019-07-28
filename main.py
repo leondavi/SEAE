@@ -61,7 +61,7 @@ Graphs["Random Regular 6"] = (nx.random_regular_graph(6,Sm_actMat_torch.shape[1]
 print(prog_st_+"0%")
 Graphs["Activity pairs based"] = (generate_graph_by_activity_pairs(nodes_pairs),0)
 graphs_similarities = []
-for clusters in range (2,5):
+for clusters in range (2,3):
     Graphs["Spectral embedding - "+str(clusters)+"clusters"] = (generate_spectral_clusttering_graph(Sm_actMat_torch,clusters),clusters)
     Graphs["AutoEncoder embedding - "+str(clusters)+"clusters"] = (generate_aes_clusttering_graph(Sm_actMat_torch,clusters),clusters)
     graphs_similarities.append(("Spectral embedding - "+str(clusters)+"clusters","AutoEncoder embedding - "+str(clusters)+"clusters"))
@@ -87,10 +87,10 @@ for graph_name in Graphs.keys():
 results.reset_index(inplace=True,drop=True)
 results.to_csv("results.csv")
 
-print("Graph similarities: ")
-for graphs in graphs_similarities:
-    res = nx.algorithms.similarity.simrank_similarity_numpy(Graphs[graphs[0]][0],Graphs[graphs[1]][0])
-    print("Similarity res: "+str(res)+" for "+graphs[0]+" and "+graphs[1])
+# print("Graph similarities: ")
+# for graphs in graphs_similarities:
+#     res = nx.graph_s(Graphs[graphs[0]][0],Graphs[graphs[1]][0])
+#     print("Similarity res: "+str(res)+" for "+graphs[0]+" and "+graphs[1])
 
 
 
